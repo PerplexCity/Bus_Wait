@@ -28,17 +28,15 @@ for (i in dates){
 bus.all <- bus.all[order(bus.all$vehicle_id),]
 bus.all$diff <- c(601, diff(bus.all$timestamp))
 
-# reduce all rows to a single ping per stop
-# by selecting differences that are either negative or substantially long
-# we get only the first ping by a bus on the way to a stop and nothing after
-bus.all.real <- subset(bus.all, diff>600 | diff<0)
-bus.all.real <- bus.all.real[order(bus.all.real$timestamp),]
+# find index for last ping before change in stop
+# by subtracting 1 from index of first ping in string of pings going to stop
+index <- which(bus.all$diff<0 | bus.all$diff>600)
+index <- index - 1
+bus.all.real <- bus.all[index,]
 
 # make a new column for the wait between buses in minutes
+bus.all.real <- bus.all.real[order(bus.all.real$timestamp),]
 bus.all.real$wait <- c(0, diff(bus.all.real$timestamp)/60)
-
-ggplot(bus.all.real, aes(x=wait)) + geom_histogram(binwidth = 1) +
-  scale_x_continuous(limits=c(0,120))
 
 ggplot(bus.all.real, aes(x=wait)) + geom_histogram(binwidth = 1, fill="dodgerblue4") +
   scale_x_continuous(limits=c(0,60), breaks=c(1:5, seq(10,30,5), 60)) +
